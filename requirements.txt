@@ -1,7 +1,6 @@
 flask
 gunicorn
-Response
-request
+requests
 jsonify
 cv2
 numpy
