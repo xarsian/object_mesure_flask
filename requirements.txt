@@ -1,6 +1,5 @@
 flask
 gunicorn
-render_template
 Response
 request
 jsonify
