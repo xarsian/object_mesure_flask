@@ -1,7 +1,6 @@
 flask
 gunicorn
 requests
-jsonify
-cv2
+opencv-python
 numpy
 np
