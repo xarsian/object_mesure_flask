@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Video Stream</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            color: #005f73;
+            text-align: center;
+        }
+        button {
+            background-color: #005f73;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0a9396;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #0a9396;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #videoStream {
+            width: 30%;
+            height: auto;
+        }
+        #processedImage {
+            width: 30%;
+            height: auto;
+        }
+    </style>
+    <script>
+        function startVideo() {
+            document.getElementById('videoStream').src = '/video';
+        }
+
+        function captureImage() {
+            fetch('/process_image', { method: 'POST' })
+                .then(response => response.blob())
+                .then(blob => {
+                    const imgElement = document.getElementById('processedImage');
+                    imgElement.src = URL.createObjectURL(blob);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <h1>BUR-BANT</h1>
+    <button onclick="startVideo()">Kamerayı Aç</button>
+    <button onclick="captureImage()">İşlenmiş Görüntü Al</button>
+    <div class="container">
+        <img alt="Video Stream" id="videoStream">
+        <img id="processedImage" alt="Processed Image">
+    </div>
+</body>
+</html>
