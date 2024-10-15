@@ -1,0 +1,9 @@
+flask
+gunicorn
+render_template
+Response
+request
+jsonify
+cv2
+numpy
+np
