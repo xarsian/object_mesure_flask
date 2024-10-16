@@ -1,11 +1,9 @@
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
 import numpy as np
+import base64
 
 app = Flask(__name__)
-
-# Kamera başlatılıyor
-camera = cv2.VideoCapture(0)
 
 # Kontur algılama fonksiyonu
 def getContours(img, cThr=[100, 100], minArea=1000, filter=0, draw=False):
@@ -53,38 +51,25 @@ def warpImg(img, points, w, h, pad=20):
     pts2 = np.float32([[0, 0], [h, 0], [0, w], [h, w]])
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     imgWarp = cv2.warpPerspective(img, matrix, (h, w))
-    imgWarp = imgWarp[pad:imgWarp.shape[0] - pad, pad:imgWarp.shape[1] - pad]
+    imgWarp = imgWarp[pad:imgWarp.shape[0]-pad, pad:imgWarp.shape[1]-pad]
     return imgWarp
 
 # İki nokta arasındaki mesafeyi hesaplama
 def findDis(pts1, pts2):
-    return ((pts2[0] - pts1[0]) ** 2 + (pts2[1] - pts1[1]) ** 2) ** 0.5
-
-# Kamera akışını oluşturma fonksiyonu
-def generate_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    return ((pts2[0]-pts1[0])**2 + (pts2[1]-pts1[1])**2) ** 0.5
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/video')
-def video():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
 @app.route('/process_image', methods=['POST'])
 def process_image():
-    success, frame = camera.read()
-    if success:
+    data = request.form['image']
+    # Base64 kodlu görüntü verisini çözme
+    image_data = base64.b64decode(data.split(',')[1])
+    nparr = np.frombuffer(image_data, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is not None:
         frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         imgContours, conts = getContours(frame, minArea=1000, filter=4)
         if len(conts) != 0:
@@ -100,16 +85,21 @@ def process_image():
                     nW2 = round((findDis(nPoints[1][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
                     nH2 = round((findDis(nPoints[2][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
                     x, y, w, h = obj[3]
-                    cv2.putText(imgContours2, '{}mm'.format(nW), (x + 30, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nH), (x - 70, y + h // 2), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nW2), (x + w + 10, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nH2), (x - 70, y + h + 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
-            frame = imgContours2
-        ret, buffer = cv2.imencode('.jpg', frame)
-        response = buffer.tobytes()
-        return Response(response, mimetype='image/jpeg')
-    return jsonify({'error': 'Failed to capture image'}), 400
+                    cv2.putText(imgContours2, '{}mm'.format(nW), (x + 30, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
+                                (255, 0, 255), 2)
+                    cv2.putText(imgContours2, '{}mm'.format(nH), (x - 70, y + h // 2), cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                                1.5, (255, 0, 255), 2)
+                    cv2.putText(imgContours2, '{}mm'.format(nW2), (x + w + 10, y - 10),
+                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
+                    cv2.putText(imgContours2, '{}mm'.format(nH2), (x - 70, y + h + 30),
+                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
+                frame = imgContours2
+        # İşlenmiş görüntüyü base64 formatında geri gönderme
+        _, buffer = cv2.imencode('.jpg', frame)
+        response = base64.b64encode(buffer).decode('utf-8')
+        return jsonify({'image': 'data:image/jpeg;base64,' + response})
+    else:
+        return jsonify({'error': 'Görüntü işlenemedi'}), 400
 
 if __name__ == "__main__":
-    from main import app
     app.run(debug=True)
