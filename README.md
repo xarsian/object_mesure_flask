@@ -4,7 +4,9 @@
 
 https://object-mesure-flesk-f3fca2b30940.herokuapp.com/ =>Linki ile sitenin canlıya alınmış halini görebilirsiniz.
 
-Kamera iznini verdikten sonra koyu renk bir background üstüne a4 kağıdını yerleştirin.
+Kamera iznini verdikten Kamerayı aç butonuna basın.
+
+Koyu renk bir background üstüne a4 kağıdını yerleştirin.
 
 Daha sonra a4 kağıdının üzerine ölçülmesini istediğiniz nesneyi yerleştirin.
 
