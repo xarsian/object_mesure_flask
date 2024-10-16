@@ -11,3 +11,5 @@ Daha sonra a4 kağıdının üzerine ölçülmesini istediğiniz nesneyi yerleş
 Daha sonra a4 ve koyu renk backgroundu yatay çekecek şekilde telefon ekranınıza üst kameradaki görüntüyü sığdırın.
 
 Ardından işlenmiş görüntüyü al butonuna basın.
+
+Copyright ©2024 All rights reserved - created by Kerem SEZEK
