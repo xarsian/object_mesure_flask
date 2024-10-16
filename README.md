@@ -12,4 +12,4 @@ Daha sonra a4 ve koyu renk backgroundu yatay çekecek şekilde telefon ekranın�
 
 Ardından işlenmiş görüntüyü al butonuna basın.
 
-Copyright ©2024 All rights reserved - created by Kerem SEZEK
+Copyright ©2024 All rights reserved - Created by Kerem SEZEK
