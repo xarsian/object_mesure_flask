@@ -36,7 +36,7 @@
             align-items: center;
             margin-top: 20px;
         }
-        img {
+        video, img {
             max-width: 100%;
             height: auto;
             border: 2px solid #0a9396;
@@ -52,29 +52,55 @@
             height: auto;
         }
     </style>
-    <script>
-        function startVideo() {
-            document.getElementById('videoStream').src = '/video';
-        }
-
-        function captureImage() {
-            fetch('/process_image', { method: 'POST' })
-                .then(response => response.blob())
-                .then(blob => {
-                    const imgElement = document.getElementById('processedImage');
-                    imgElement.src = URL.createObjectURL(blob);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    </script>
 </head>
 <body>
     <h1>BUR-BANT</h1>
     <button onclick="startVideo()">Kamerayı Aç</button>
     <button onclick="captureImage()">İşlenmiş Görüntü Al</button>
     <div class="container">
-        <img alt="Video Stream" id="videoStream">
+        <video id="videoStream" autoplay playsinline></video>
         <img id="processedImage" alt="Processed Image">
     </div>
+    <script>
+        let video = document.getElementById('videoStream');
+
+        function startVideo() {
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function(err0r) {
+                        console.log("Kamera erişim hatası: " + err0r);
+                    });
+            }
+        }
+
+        function captureImage() {
+            let canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            let context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            let imageData = canvas.toDataURL('image/jpeg');
+
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'image=' + encodeURIComponent(imageData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.image) {
+                    document.getElementById('processedImage').src = data.image;
+                } else {
+                    console.error('Sunucu hatası:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
