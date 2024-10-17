@@ -85,14 +85,10 @@ def process_image():
                     nW2 = round((findDis(nPoints[1][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
                     nH2 = round((findDis(nPoints[2][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
                     x, y, w, h = obj[3]
-                    cv2.putText(imgContours2, '{}mm'.format(nW), (x + 30, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
+                    cv2.putText(imgContours2, 'En : {}mm'.format(nW), (x + 30, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
                                 (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nH), (x - 70, y + h // 2), cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                    cv2.putText(imgContours2, 'Boy : {}mm'.format(nH), (x - 70, y + h // 2), cv2.FONT_HERSHEY_COMPLEX_SMALL,
                                 1.5, (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nW2), (x + w + 10, y - 10),
-                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
-                    cv2.putText(imgContours2, '{}mm'.format(nH2), (x - 70, y + h + 30),
-                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5, (255, 0, 255), 2)
                 frame = imgContours2
         # İşlenmiş görüntüyü base64 formatında geri gönderme
         _, buffer = cv2.imencode('.jpg', frame)
