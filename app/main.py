@@ -75,20 +75,31 @@ def process_image():
         if len(conts) != 0:
             biggest = conts[0][2]
             imgWarp = warpImg(frame, biggest, 297 * 3, 210 * 3)
-            imgContours2, conts2 = getContours(imgWarp, minArea=2000, filter=4, cThr=[50, 50], draw=False)
+            # Filtreyi 0 yaparak tüm şekilleri algılıyoruz
+            imgContours2, conts2 = getContours(imgWarp, minArea=2000, filter=0, cThr=[50, 50], draw=False)
             if len(conts2) != 0:
                 for obj in conts2:
-                    cv2.polylines(imgContours2, [obj[2]], True, (0, 255, 0), 2)
-                    nPoints = reorder(obj[2])
-                    nW = round((findDis(nPoints[0][0] // 3, nPoints[1][0] // 3)), 1)  # mm cinsine çevirildi
-                    nH = round((findDis(nPoints[0][0] // 3, nPoints[2][0] // 3)), 1)  # mm cinsine çevirildi
-                    nW2 = round((findDis(nPoints[1][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
-                    nH2 = round((findDis(nPoints[2][0] // 3, nPoints[3][0] // 3)), 1)  # mm cinsine çevirildi
-                    x, y, w, h = obj[3]
-                    cv2.putText(imgContours2, 'En : {}mm'.format(nW), (x + 30, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
+                    # Konturu yeşil renk ile çizme
+                    cv2.polylines(imgContours2, [obj[2]], True, (0, 255, 0), 1)
+                    # Döndürülmüş dikdörtgeni elde etme
+                    rect = cv2.minAreaRect(obj[2])
+                    box = cv2.boxPoints(rect)
+                    box = np.int0(box)
+                    # Döndürülmüş dikdörtgeni kırmızı renk ile çizme
+                    cv2.drawContours(imgContours2, [box], 0, (0, 0, 255), 1)
+                    # Genişlik ve yüksekliği elde etme
+                    width = rect[1][0]
+                    height = rect[1][1]
+                    # Ölçümleri pikselden milimetreye dönüştürme (1 mm = 3 piksel varsayımı)
+                    nW = round(width / 3, 1)  # mm
+                    nH = round(height / 3, 1)  # mm
+                    # Dikdörtgenin merkezini bulma
+                    center = (int(rect[0][0]), int(rect[0][1]))
+                    # Ölçüm değerlerini görsele ekleme
+                    cv2.putText(imgContours2, 'en: {}mm'.format(nW), (center[0] - 50, center[1] - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.0,
                                 (255, 0, 255), 2)
-                    cv2.putText(imgContours2, 'Boy : {}mm'.format(nH), (x - 70, y + h // 2), cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                                1.5, (255, 0, 255), 2)
+                    cv2.putText(imgContours2, 'boy: {}mm'.format(nH), (center[0] - 50, center[1] + 20), cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                                1.0, (255, 0, 255), 2)
                 frame = imgContours2
         # İşlenmiş görüntüyü base64 formatında geri gönderme
         _, buffer = cv2.imencode('.jpg', frame)
