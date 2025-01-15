@@ -80,27 +80,23 @@ def process_image():
             if len(conts2) != 0:
                 for obj in conts2:
                     # Konturu yeşil renk ile çizme
-                    cv2.polylines(imgContours2, [obj[2]], True, (0, 255, 0), 1)
-                    # Döndürülmüş dikdörtgeni elde etme
-                    rect = cv2.minAreaRect(obj[2])
-                    box = cv2.boxPoints(rect)
-                    box = np.int0(box)
-                    # Döndürülmüş dikdörtgeni kırmızı renk ile çizme
-                    cv2.drawContours(imgContours2, [box], 0, (0, 0, 255), 1)
-                    # Genişlik ve yüksekliği elde etme
-                    width = rect[1][0]
-                    height = rect[1][1]
-                    # Ölçümleri pikselden milimetreye dönüştürme (1 mm = 3 piksel varsayımı)
-                    nW = round(width / 3, 1)  # mm
-                    nH = round(height / 3, 1)  # mm
-                    # Dikdörtgenin merkezini bulma
-                    center = (int(rect[0][0]), int(rect[0][1]))
-                    # Ölçüm değerlerini görsele ekleme
-                    cv2.putText(imgContours2, 'en: {}mm'.format(nW), (center[0] - 50, center[1] - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.0,
-                                (255, 0, 255), 2)
-                    cv2.putText(imgContours2, 'boy: {}mm'.format(nH), (center[0] - 50, center[1] + 20), cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                                1.0, (255, 0, 255), 2)
-                frame = imgContours2
+                    cv2.polylines(imgContours2, [obj[2]], True, (0, 255, 0), 2)
+                    approx = obj[2]
+                    # Konturun kenar uzunluklarını hesaplama
+                    for i in range(len(approx)):
+                        pt1 = approx[i][0]
+                        pt2 = approx[(i + 1) % len(approx)][0]
+                        distance = findDis(pt1, pt2)
+                        # Ölçümleri pikselden milimetreye dönüştürme (1 mm = 3 piksel varsayımı)
+                        distance_mm = round(distance / 3, 1)
+                        # Kenarın orta noktasını bulma
+                        mid_pt = (int((pt1[0] + pt2[0]) / 2), int((pt1[1] + pt2[1]) / 2))
+                        # Ölçümü görsele ekleme
+                        cv2.putText(imgContours2, '{}mm'.format(distance_mm), mid_pt, cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                                    1, (255, 0, 255), 2)
+            frame = imgContours2
+        else:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
         # İşlenmiş görüntüyü base64 formatında geri gönderme
         _, buffer = cv2.imencode('.jpg', frame)
         response = base64.b64encode(buffer).decode('utf-8')
